@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% macro get_color(value, negative_change_positive=False) %}
+    {% if value == None %}
+        <td class="col-1">None</td>
+    {% elif value|float * 100 > 1 %}
+        {% if not negative_change_positive %}
+            <td class="positive_change col-1">{{ "{:.1%}".format(value|float) }}</td>
+        {% else %}
+            <td class="negative_change col-1">{{ "{:.1%}".format(value|float) }}</td>
+        {% endif %}
+    {% elif value|float * 100 < -1 %}
+        {% if not negative_change_positive %}
+            <td class="negative_change col-1">{{ "{:.1%}".format(value|float) }}</td>
+        {% else %}
+            <td class="positive_change col-1">{{ "{:.1%}".format(value|float) }}</td>
+        {% endif %}
+    {% else %}
+        <td class="col-1">{{ "{:.1%}".format(value|float) }}</td>
+    {% endif %}
+{% endmacro %}
+
+{% macro stats_after(id, metric) %}
+    {% for period in periods_list %}
+        <td class="col-1">{{ stats[id][period][metric] }}</td>
+    {% endfor %}
+{% endmacro %}
+
+{% macro stats_before(id, metric) %}
+    {% for period in periods_list %}
+        <td class="col-1">{{ stats[id]['-' + period][metric] }}</td>
+    {% endfor %}
+{% endmacro %}
+
+{% block content %}
+    <h3 class="dashboard-heading mt-3">Project: {{ project.name }}</h3>
+
+    {% if not ga_blueprint.session.authorized %}
+        <div class="mt-5">
+            <h3>To use Google Analytics in CopyTrack, please <a href="{{ url_for("users.ga_login") }}">connect it</a>.
+            </h3>
+        </div>
+    {% endif %}
+
+    <div class="mt-5">
+
+        <button type="button" class="btn btn-primary add-url" data-toggle="modal" data-target="#addurl">
+            Add URL
+        </button>
+
+        <div>
+            <form action="{{ url_for('core.update_all_urls') }}" method="GET">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Update All</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive mb-3">
+        <table class="table table-bordered dashboard-table">
+            <tr style="text-align: center;" class="d-flex">
+                <th scope="col" class="first-column col-5">URL</th>
+                <th scope="col" class="col-2">Date of change</th>
+            </tr>
+
+            {% for url in urls %}
+
+                <tr class="d-flex">
+                    <th scope="row" class="first-column table-warning col-5">{{ url.url }} <a href="{{ url.url }}"
+                                                                                              target="_blank"><i
+                            class="fas fa-external-link-alt"></i></a></th>
+                    <td class="col-2 table-warning">{{ url.date.strftime('%d.%m.%Y') }}</td>
+                    {% for period in periods_list %}
+                        <th scope="col" class="col-1 table-warning">{{ period }} days</th>
+                    {% endfor %}
+                    <td class="col-1"><a href="{{ url_for('users.account', _anchor='dashboard') }}">+ Edit period</a>
+                    </td>
+                </tr>
+                <tr class="d-flex">
+                    <td class="first-column col-5 table-secondary ">
+                        <i class="far fa-trash-alt fa-lg fa-fw pointer"
+                           data-toggle="modal" data-target="#deleteurl"
+                           data-url-id="{{ url.id }}" title="Delete"></i>
+
+                        <i class="far fa-edit fa-lg fa-fw pointer" data-toggle="modal" id="edit-single-url"
+                           data-target="#editurl"
+                           data-url-id="{{ url.id }}" title="Edit"></i>
+
+                        <i class="fas fa-sync-alt fa-lg fa-fw pointer" id="update-single-url"
+                           data-url-id="{{ url.id }}" title="Refresh"></i>
+                    </td>
+                    <th scope="col" class="col-2 table-secondary "></th>
+                    {{ stats_after(url.id, 'pageviews') }}
+                </tr>
+                <tr class="d-flex">
+                    <td class=" first-column col-5 table-secondary">{% if url.old_url %} <strong>Old URL:</strong>
+                        {{ url.old_url }} {% endif %}</td>
+                    <th class="col-2 table-secondary" style="text-align: right;">Pageviews</th>
+                    {{ stats_before(url.id, 'pageviews') }}
+                </tr>
+                <tr class="d-flex">
+                    <td class="first-column col-5 table-secondary"></td>
+                    <td class="col-2 table-secondary"></td>
+                    {% for period in periods_list %}
+                        {{ get_color(stats[url.id][period]['pageviews_change']) }}
+                    {% endfor %}
+                </tr>
+
+                <tr class="d-flex">
+                    <td class="first-column col-5">{% if url.description %} <strong>Description:</strong>
+                        {{ url.description }} {% endif %}</td>
+                    <th scope="col" class="col-2"></th>
+                    {{ stats_after(url.id, 'landing') }}
+                </tr>
+                <tr class="d-flex">
+                    <td class="first-column col-5"></td>
+                    <th class="col-2" style="text-align: right;">Landing</th>
+                    {{ stats_before(url.id, 'landing') }}
+                </tr>
+                <tr class="d-flex">
+                    <th class="first-column col-5"></th>
+                    <th class="col-2"></th>
+                    {% for period in periods_list %}
+                        {{ get_color(stats[url.id][period]['landing_change']) }}
+                    {% endfor %}
+
+                </tr>
+                <tr class="d-flex">
+                    <th class="first-column col-5 table-secondary"></th>
+                    <th scope="col" class="col-2 table-secondary"></th>
+                    {% for period in periods_list %}
+                        <td class="col-1">{{ "{:.0%}".format(stats[url.id][period]['bounce_rate']|float) }}</td>
+                    {% endfor %}
+                </tr>
+                <tr class="d-flex">
+                    <td class="first-column col-5 table-secondary"></td>
+                    <th class="col-2 table-secondary" style="text-align: right;">Bounce rate</th>
+                    {% for period in periods_list %}
+                        <td class="col-1">{{ "{:.0%}".format(stats[url.id]['-' + period]['bounce_rate']|float) }}</td>
+                    {% endfor %}
+                </tr>
+                <tr class="d-flex">
+                    <th class="first-column col-5 table-secondary"></th>
+                    <th class="col-2 table-secondary"></th>
+                    {% for period in periods_list %}
+                        {{ get_color(stats[url.id][period]['bounce_rate_change'], negative_change_positive=True) }}
+                    {% endfor %}
+
+                </tr>
+                <tr class="d-flex">
+                    <th class="first-column col-5"></th>
+                    <th scope="col" class="col-2"></th>
+                    {{ stats_after(url.id, 'transactions') }}
+                </tr>
+                <tr class="d-flex">
+                    <td class="first-column col-5"></td>
+                    <th class="col-2" style="text-align: right;">Transactions</th>
+                    {{ stats_before(url.id, 'transactions') }}
+                </tr>
+                <tr class="d-flex">
+                    <th class="first-column col-5"></th>
+                    <th class="col-2"></th>
+                    {% for period in periods_list %}
+                        {{ get_color(stats[url.id][period]['transactions_change']) }}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+
+
+    {#  Modal for delete  #}
+
+    <div class="modal fade" id="deleteurl" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Delete URL</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this url and stats?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel
+                    </button>
+                    <form action="" method="GET">
+                        <input class="btn btn-danger" type="submit" value="Delete">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#  Modal for add url  #}
+
+    <div class="modal fade" id="addurl" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add new URL</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {#      action="{{ url_for('core.add_url') }}"         #}
+                    <form name="add_form" class="form" method="POST" novalidate>
+
+                        {{ add_form.hidden_tag() }}
+
+                        <div class="form-group">
+                            {{ add_form.url_add.label(class='form-group') }}
+                            {{ add_form.url_add(class="form-control") }}
+                            {% for error in add_form.url_add.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ add_form.datetimepicker.label(class='form-group') }}
+                            {{ add_form.datetimepicker(class="form-control datetimepicker-input") }}
+                            {% for error in add_form.datetimepicker.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <a class="" data-toggle="collapse" href="#morefields" role="button"
+                           aria-expanded="false" aria-controls="collapseExample">
+                            Show more <i class="fas fa-caret-down"></i>
+                        </a>
+                        <div class="collapse" id="morefields">
+
+                            <div class="form-group mt-3">
+                                {{ add_form.old_url_add.label(class='form-group') }}
+                                {{ add_form.old_url_add(class="form-control") }}
+                                {% for error in add_form.old_url_add.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-group mb-5">
+                                {{ add_form.description_add.label(class='form-group') }}
+                                {{ add_form.description_add(class="form-control") }}
+                                <div class="chars-count" id="description_add_count"></div>
+                                {% for error in add_form.description_add.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {{ add_form.submit_add(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editurl" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit the URL</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="edit_form" class="form" method="POST" novalidate>
+
+                        {{ edit_form.hidden_tag() }}
+
+                        <div class="form-group">
+                            {{ edit_form.url_edit.label(class='form-group') }}
+                            {{ edit_form.url_edit(class="form-control") }}
+                            {% for error in edit_form.url_edit.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ edit_form.datetimepicker_edit.label(class='form-group') }}
+                            {{ edit_form.datetimepicker_edit(class="form-control datetimepicker-input") }}
+                            {% for error in edit_form.datetimepicker_edit.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        {#                        <a class="" data-toggle="collapse" href="#morefields" role="button"#}
+                        {#                           aria-expanded="false" aria-controls="collapseExample">#}
+                        {#                            Show more optional fields <i class="fas fa-caret-down"></i>#}
+                        {#                        </a>#}
+                        {#                        <div class="collapse" id="morefields">#}
+
+                        <div class="form-group mt-3">
+                            {{ edit_form.old_url_edit.label(class='form-group') }}
+                            {{ edit_form.old_url_edit(class="form-control") }}
+                            {% for error in edit_form.old_url_edit.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group mb-5">
+                            {{ edit_form.description_edit.label(class='form-group') }}
+                            {{ edit_form.description_edit(class="form-control") }}
+                            <div class="chars-count" id="description_edit_count"></div>
+                            {% for error in edit_form.description_edit.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        {{ edit_form.hidden_edit }}
+                        {#                        </div>#}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {{ edit_form.submit_edit(class="btn btn-warning") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script>
+
+        $('#description_add').on("input", function () {
+            var maxlength = $(this).attr("maxlength");
+            var currentLength = $(this).val().length;
+            $('#description_add_count').html(maxlength + " chars left");
+            var text_remaining = maxlength - currentLength;
+
+            $('#description_add_count').html(text_remaining + ' chars left');
+
+        });
+
+
+        $('#description_edit').on("input", function () {
+            var maxlength = $(this).attr("maxlength");
+            var currentLength = $(this).val().length;
+            $('#description_edit_count').html(maxlength + " chars left");
+            var text_remaining = maxlength - currentLength;
+
+            $('#description_edit_count').html(text_remaining + ' chars left');
+
+        });
+
+        $(function () {
+
+            var format = 'DD.MM.YYYY';
+            var picker = $('#datetimepicker');
+            if (!(picker.val())) {
+                picker.datetimepicker({
+                    format: 'DD.MM.YYYY',
+                    locale: 'en-gb',
+                    defaultDate: moment().startOf('day'),
+                    maxDate: moment().startOf('day'),
+                    keyBinds: false
+                });
+            }
+            var my_date = moment(picker.val(), format).toDate();
+            picker.datetimepicker({
+                format: format,
+                date: null,
+                locale: 'en-gb',
+                maxDate: moment().startOf('day'),
+                keyBinds: false
+            });
+            picker.datetimepicker('date', my_date);
+        });
+
+
+        $(function () {
+
+            var format = 'DD.MM.YYYY';
+            var picker = $('#datetimepicker_edit');
+            var date = moment(picker.val(), format).toDate();
+            picker.datetimepicker({
+                format: format,
+                date: null,
+                locale: 'en-gb',
+                maxDate: moment().startOf('day'),
+                keyBinds: false
+            });
+            picker.datetimepicker('date', date);
+        });
+
+        {% if add_form_error %}
+            $('#addurl').modal("show");
+            $('#morefields').show();
+        {% endif %}
+
+        {% if edit_form_error %}
+            $('#editurl').modal("show");
+        {% endif %}
+
+
+        $("body").on("click", "#edit-single-url", function (e) {
+            e.preventDefault();
+            let url_id = $(this).data('url-id');
+
+            $.ajax({
+                url: '/edit/' + url_id,
+                type: 'GET',
+                success: function (response) {
+                    {#console.log(response);#}
+                    openEditModal(response);
+                },
+                error: function () {
+                    console.log('Something went wrong here');
+                },
+            });
+        });
+
+        function openEditModal(url_data) {
+
+            $('#hidden_edit').val(url_data.id);
+            $('#url_edit').val(url_data.url);
+            $('#datetimepicker_edit').val(url_data.date);
+            $('#old_url_edit').val(url_data.old_url);
+            $('#description_edit').val(url_data.description);
+            $('#editurl').modal("show");
+        }
+
+
+        $('#deleteurl').on('show.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let url_id = button.data('url-id');
+            let modal = $(this);
+            modal.find('form').get(0).setAttribute('action', '/delete/' + url_id);
+        });
+
+
+        $("body").on("click", "#update-single-url", function () {
+            let url_id = $(this).data('url-id');
+            window.location = '/update/' + url_id;
+        });
+
+
+    </script>
+{% endblock %}

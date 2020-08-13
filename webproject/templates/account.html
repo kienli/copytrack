@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class="row mt-3">
+        <div class="col-lg-2 mb-3">
+            <div class="nav nav-pills flex-column" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link" id="dashboard-tab" href="#dashboard"
+                   role="tab"
+                   aria-controls="dashboard" aria-selected="true">Dashboard</a>
+                <a class="nav-link" id="api-tab" href="#api" role="tab"
+                   aria-controls="api" aria-selected="false">API connections</a>
+                <a class="nav-link" id="profile-tab" href="#profile" role="tab"
+                   aria-controls="profile" aria-selected="false">Profile</a>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="tab-content" id="v-pills-tabContent">
+                <div class="tab-pane fade show" id="dashboard" role="tabpanel"
+                     aria-labelledby="dashboard-tab">
+                    <div class="card mb-5">
+                        <div class="card-header">Dashboard</div>
+                        <div class="card-body">
+
+                            <form method="POST" action="" {#  enctype="multipart/form-data" #}>
+                                {{ dash_sett_form.hidden_tag() }}
+
+
+                                <div class="form-group">
+                                    {{ dash_sett_form.periods.label(class='form-group') }} {{ dash_sett_form.periods(class='form-control') }}
+                                    {% for error in dash_sett_form.periods.errors %}
+                                        <span style="color: red;">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ dash_sett_form.sorting.label(class='form-group') }}
+
+                                    <br>
+                                    {% for subfield in dash_sett_form.sorting %}
+                                        <tr>
+                                            <td>{{ subfield }}</td>
+                                            <td>{{ subfield.label }}</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                </div>
+
+                                <div class="form-group">
+                                    {{ dash_sett_form.dash_submit(class='btn btn-primary') }}
+                                </div>
+
+                            </form>
+                            <hr>
+                            <p>URL deletion</p>
+
+                            <button type="button" class="btn btn-danger" data-toggle="modal"
+                                    data-target="#deleteall">
+                                Delete all URLs
+                            </button>
+
+                            <div class="modal fade" id="deleteall" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalCenterTitle">Delete all URLs</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete all URLs and stats?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel
+                                            </button>
+                                            <form action="{{ url_for('core.delete_all_links') }}" method="GET">
+                                                <input class="btn btn-danger" type="submit" value="Delete all">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="api" role="tabpanel" aria-labelledby="api-tab">
+                    <div class="card mb-5">
+                        <div class="card-header">API connections</div>
+                        <div class="card-body">
+                            {% if prof_dict %}
+                                <form name="profile_form" action="{{ url_for('users.account') }}"
+                                      id="update-profile-form" method="POST">
+
+                                    {% for username, accounts in prof_dict.items() %}
+
+                                        <p><strong>Account: {{ username }}</strong></p>
+                                        <div class="table-responsive mb-3 profile-table">
+                                            <table class="table">
+                                                {% for account_id, accounts_info in accounts.items() %}
+                                                    <tr class="table-secondary">
+                                                        <td colspan="4"><i class="fas fa-folder-open"></i>
+                                                            <strong>{{ accounts_info['account_name'] }}</strong></td>
+                                                    </tr>
+                                                    {% for property_id, property_info in accounts_info['properties'].items() %}
+                                                        {% for profile_id, profile_info in property_info['profiles'].items() %}
+                                                            <tr>
+                                                                <td><input type="checkbox" name="{{ property_id }}"
+                                                                           id="{{ profile_id }}"
+                                                                           value="{{ profile_id }}"
+                                                                           {% if profile_info['active'] %}checked="true"{% endif %}>
+                                                                </td>
+                                                                <td><label
+                                                                        for="{{ profile_id }}">{{ property_info['property_name'] }}
+                                                                    <sub>({{ property_id }})</sub></label></td>
+                                                                <td><label
+                                                                        for="{{ profile_id }}">{{ profile_info['profile_name'] }}</label>
+                                                                </td>
+                                                                <td><label
+                                                                        for="{{ profile_id }}">{{ property_info['property_url'] }}</label>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </table>
+                                        </div>
+                                    {% endfor %}
+                                    <input type="hidden" name="ga-profiles" value="ga-profiles">
+                                    <input type="button" class="btn btn-primary" value="Update" id="updateprofiles"
+                                           data-toggle="modal" data-target="#confirm-updateprofiles">
+                                </form>
+
+
+                                <div class="modal fade" id="confirm-updateprofiles" tabindex="-1" role="dialog"
+                                     aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalCenterTitle">Update
+                                                    profiles</h5>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Updating the profiles will automatically start a full recheck for all
+                                                urls in the updated profiles.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <input class="btn btn-primary" id="submit" type="submit"
+                                                       value="Update profiles">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <hr class="mb-5">
+                            {% endif %}
+
+                            <p>Connection to Google Analytics API</p>
+                            {% if ga_blueprint.session.authorized %}
+                                <a class="btn btn-danger" href="{{ url_for('users.ga_revoke') }}" role="button">Revoke
+                                    access</a> <br>
+                                <p class="mt-2">If simple revoke doesn't work (experimental)</p>
+
+                                <a class="btn btn-warning" href="{{ url_for('users.force_revoke') }}" role="button">Force
+                                    Revoke</a>
+                            {% else %}
+                                <a class="btn btn-success" href="{{ url_for('users.ga_login') }}" role="button">Connect
+                                    to
+                                    Google
+                                    Analytics</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <div class="card mb-5">
+                        <div class="card-header">Profile</div>
+                        <div class="card-body">
+                            <form method="POST" action="" {#  enctype="multipart/form-data" #}>
+                                {{ profile_form.hidden_tag() }}
+
+                                {#                                <div class="form-group row">#}
+                                {#                                    {{ profile_form.timezone.label(class='col-sm-2 col-form-label') }}#}
+                                {#                                    <div class="col-sm-10">#}
+                                {#                                        {{ profile_form.timezone(class='form-control-plaintext') }}#}
+                                {#                                    </div>#}
+                                {#                                </div>#}
+
+                                <div class="form-group">
+                                    {{ profile_form.timezone.label(class='form-group') }}
+
+                                    {{ profile_form.timezone(class='form-control selectpicker') }}
+                                    {% for error in profile_form.timezone.errors %}
+                                        <span style="color: red;">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+
+                                {{ profile_form.timezone_hidden }}
+
+                                <div class="form-group">
+                                    {{ profile_form.username.label(class='form-group') }} {{ profile_form.username(class='form-control') }}
+                                    {% for error in profile_form.username.errors %}
+                                        <span style="color: red;">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ profile_form.email.label(class='form-group') }} {{ profile_form.email(class='form-control') }}
+                                    {% for error in profile_form.email.errors %}
+                                        <span style="color: red;">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {#
+                        <div class="form-group">
+                            {{ form.picture(class="form-control-file") }}
+                            {% for error in form.picture.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        #}
+                                <div class="form-group">
+                                    {{ profile_form.profile_submit(class='btn btn-primary') }}
+                                </div>
+
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+
+    <script>
+        $('#submit').click(function () {
+            $('#update-profile-form').submit();
+        });
+
+        $('#v-pills-tab a').click(function (e) {
+            $(this).tab('show');
+        });
+
+        if (window.location.hash) {
+            const anchor = window.location.hash;
+            $('a[href="' + anchor + '"]').tab('show');
+        } else {
+            $('#dashboard-tab').addClass('active show');
+            $('#dashboard').addClass('active how');
+        }
+
+        var timezone = moment.tz.names();
+        for (var i = 0; i < timezone.length; i++) {
+            if (timezone[i] === $('#timezone_hidden').val()) {
+                $('select').append('<option selected value="' + timezone[i] + '">' + timezone[i] + '</option>');
+            }
+            else {
+                $('select').append('<option value="' + timezone[i] + '">' + timezone[i] + '</option>');
+            }
+        }
+        $('select').selectpicker();
+
+    </script>
+{% endblock %}

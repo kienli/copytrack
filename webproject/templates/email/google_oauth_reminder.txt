@@ -1,0 +1,13 @@
+Dear {{ user.username }},
+
+It looks like you have used previously your Google account to access CopyTrack website.
+We cannot reset your password, because we don't have it.
+
+Use the button below to sign in with Google again.
+
+{{ url_for('google.login', _external=True) }}
+If you have not requested a password reset simply ignore this message.
+
+Sincerely,
+
+The CopyTrack Team

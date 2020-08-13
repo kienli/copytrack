@@ -1,0 +1,54 @@
+# replace MY_HOST_URL with your domain name
+
+server {
+    if ($host = MY_HOST_URL) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    # listen on port 80 (http)
+    listen 80;
+    server_name MY_HOST_URL;
+    # rewrite ^ https://$http_host$request_uri? permanent;
+    server_tokens off;
+    location / {
+        # redirect any requests to the same URL but on https
+        return 301 https://$host$request_uri;
+    }
+
+
+}
+server {
+    # listen on port 443 (https)
+    listen [::]:443 ssl http2 ipv6only=on;
+    listen 443 ssl http2;
+    server_name MY_HOST_URL;
+    server_tokens off;
+    ssl_ciphers EECDH+CHACHA20:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    
+    # write access and error logs to /var/log
+    access_log /var/log/copytrack_access.log;
+    error_log /var/log/copytrack_error.log;
+
+    location / {
+        # forward application requests to the gunicorn server
+        proxy_pass http://localhost:8000;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      
+    }
+
+     location /static {
+        # handle static files directly, without forwarding to the application
+        # include  /etc/nginx/mime.types;
+        alias /home/ubuntu/copytrack/webproject/static;
+        expires 30d;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/MY_HOST_URL/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/MY_HOST_URL/privkey.pem; # managed by Certbot
+}

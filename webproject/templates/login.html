@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+            <div class="card card-signin my-5">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Sign In</h5>
+                    <form class="form-signin" method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="form-label-group">
+                            {{ form.email(class="form-control") }}
+                            {% for error in form.email.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-label-group">
+                            {{ form.password(class="form-control") }}
+                            {% for error in form.password.errors %}
+                                <span style="color: red;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="custom-control custom-checkbox mb-3">
+                            {{ form.remember_me(class="custom-control-input") }}
+                            {{ form.remember_me.label(class="custom-control-label") }}
+                            <a href="{{ url_for('users.reset_password_request') }}" class="forgotpass">Forgot your password</a>
+                        </div>
+                        {{ form.submit(class="btn btn-lg btn-primary btn-block text-uppercase") }}
+                        <div class="text-center mt-3">
+                            <p>or <a href="{{ url_for('users.register') }}">register here</a></p>
+                        </div>
+
+                        <hr class="my-3">
+                        <a class="btn btn-lg btn-google btn-block text-uppercase" href="{{ url_for('google.login') }}"
+                           role="button"><i
+                                class="fab fa-google mr-2"></i>Sign in with Google</a>
+                        {#
+                        <button class="btn btn-lg btn-facebook btn-block text-uppercase" type="submit"><i
+                                class="fab fa-facebook-f mr-2"></i> Sign in with Facebook
+                        </button>
+                     #}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

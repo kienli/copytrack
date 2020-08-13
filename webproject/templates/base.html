@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="VMOGgKl8eszO7BtOfcMDx4t73BMbDlh9zG0mRgCCUs0" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+          integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+          integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/css/tempusdominus-bootstrap-4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.5/css/bootstrap-select.min.css">
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Track changes</title>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('core.index') }}">CopyTrack</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+{#            <a class="nav-item nav-link" href="{{ url_for('core.dashboard') }}">Dashboard</a>#}
+            <a class="nav-item nav-link" href="{{ url_for('core.info') }}">What's new</a>
+        </div>
+        <div class="navbar-nav ml-auto">
+            {% if current_user.is_authenticated %}
+                <a class="nav-item nav-link" href="{{ url_for('users.account') }}">Account</a>
+                <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Log Out</a>
+            {% else %}
+                <a class="nav-item nav-link" href="{{ url_for('users.login') }}">Sign In</a>
+                <a class="nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>
+            {% endif %}
+        </div>
+
+
+    </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <div class="text-center">{{ message }}</div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{% if current_user.is_authenticated %}
+    {% with tasks = current_user.get_tasks_in_progress() %}
+        {% if tasks %}
+            {% for task in tasks %}
+                <div id="task-notification" class="alert alert-success" role="alert">
+                    <div id="task-{{ task.id }}-message" class="text-center">{{ task.description }}
+                        <span id="{{ task.id }}-progress">{{ task.get_progress() }}</span>%<br>
+                        <a class="none-display refresh_link" href="{{ url_for('core.dashboard', project_id=session['project']) }}">Refresh the
+                            dashboard page</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endif %}
+
+{# Categories: success (green), info (blue), warning (yellow), danger (red) #}
+
+<div class="container">
+    {% block content %}
+
+    {% endblock %}
+
+</div>
+<footer class="mastfoot mt-auto">
+    <a class="privacy-link" href="{{ url_for('users.privacy_policy') }}">CopyTrack Privacy Policy</a>
+</footer>
+<script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+{#<script#}
+{#        src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>#}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+        integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+        integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.23/moment-timezone-with-data.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.5/js/bootstrap-select.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/js/bootstrap4-toggle.min.js"></script>
+<script>
+    {#
+    function set_message_count(n) {
+        $('#message_count').text(n);
+        $('#message_count').css('visibility', n ? 'visible' : 'hidden');
+    }
+     #}
+
+    function set_task_progress(task_id, progress, failed) {
+        $('#' + task_id + '-progress').text(progress);
+        if (progress == 100) {
+            $('.refresh_link').css('display', 'inline-block');
+        }
+        if (failed === 1) {
+            $('#task-notification').removeClass('alert-success');
+            $('#task-notification').addClass('alert-danger');
+        }
+    }
+
+    function display_errors(task_id, error) {
+        $('#task-' + task_id + '-message').text(error);
+    }
+
+    {% if current_user.is_authenticated %}
+        $(function () {
+            var since = 0;
+            setInterval(function () {
+                $.ajax('{{ url_for('core.notifications') }}?since=' + since).done(
+                    function (notifications) {
+                        for (var i = 0; i < notifications.length; i++) {
+                            switch (notifications[i].name) {
+                                {# case 'unread_message_count':
+                                  set_message_count(notifications[i].data);
+                                break; #}
+                                case 'error':
+                                    display_errors(notifications[i].data.task_id,
+                                        notifications[i].data.message);
+                                    break;
+                                case 'task_progress':
+                                    set_task_progress(notifications[i].data.task_id,
+                                        notifications[i].data.progress,
+                                        notifications[i].data.failed);
+                                    break;
+                            }
+                            since = notifications[i].timestamp;
+                        }
+                    }
+                );
+            }, 2000);
+        });
+    {% endif %}
+</script>
+
+{% block js %}
+
+{% endblock %}
+</body>
+</html>

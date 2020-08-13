@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="jumbotron">
+        <h1>An unexpected error 500 has occurred</h1>
+        <p>The administrator has been notified. Sorry for the inconvenience!</p>
+        <p><a href="{{ url_for('core.index') }}">Back</a></p>
+    </div>
+{% endblock %}

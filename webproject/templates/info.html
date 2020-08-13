@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="content">
+        <h1 class="mb-5">What's new in the project</h1>
+
+        <h3>21.10.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Changed]</strong> Update only project urls after pressing Update All button </li>
+            <li><strong>[Fixed]</strong> Error message "local variable 'google_response' referenced before assignment" </li>
+        </ul>
+
+        <h3>18.10.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Fixed]</strong> Projects could not be deleted </li>
+            <li><strong>[Changed]</strong> Increased task timeout up to 600 sec (10 min) </li>
+            <li><strong>[Changed]</strong> Updated dependencies </li>
+        </ul>
+
+        <h3>19.02.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Projects (add, edit, delete projects)</li>
+            <li><strong>[Added]</strong> Character count for fields with text length limitations</li>
+        </ul>
+
+        <h3>03.02.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Detect user timezone during local registration (based on moment.js)</li>
+            <li><strong>[Added]</strong> Universal datepicker for Add and Edit forms</li>
+            <li><strong>[Added]</strong> Timezone selector in Account (based on moment.js)</li>
+            <li><strong>[Changed]</strong> Internationalized datepicker and partially dashboard dates</li>
+        </ul>
+
+        <h3>29.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Edit button and edit form to every URL</li>
+            <li><strong>[Changed]</strong> Every GA check will update the dashboard stats with fresh stats</li>
+            <li><strong>[Changed]</strong> Updating the GA profiles will recheck stats automatically instead only
+                deleting them
+            </li>
+            <li><strong>[Changed]</strong> Position of background jobs notifications is now after flask notifications
+            </li>
+            <li><strong>[Changed]</strong> Max URL length is 400 characters now</li>
+            <li><strong>[Fixed]</strong> Missing trailing slash was not added automatically</li>
+            <li><strong>[Fixed]</strong> Word wrap was applied to all the table</li>
+        </ul>
+
+        <h3>28.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Old URL for changed URLs</li>
+            <li><strong>[Added]</strong> Description of the change</li>
+            <li><strong>[Added]</strong> Old URL and description to Add URL form and dashboard</li>
+            <li><strong>[Changed]</strong> Radio buttons to checkboxes for API settings</li>
+            <li><strong>[Fixed]</strong> Showing stats for the same URL with different dates of change</li>
+            <li><strong>[Fixed]</strong> Additional spaces at the end of the URL would prevent showing stats at all
+            </li>
+        </ul>
+
+        <h3>27.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> If you add a new URL, we put the link automatically in the background job to
+                check stats
+            </li>
+            <li><strong>[Added]</strong> Refresh icon is activated for every link</li>
+            <li><strong>[Added]</strong> Icon for external link is added to every URL</li>
+            <li><strong>[Added]</strong> All available Google Analytics accounts, properties and profiles
+                are listed now in /account#api
+            </li>
+            <li><strong>[Added]</strong> If several profiles for the same URL are set in Google Analytics,
+                you can select the right one in CopyTrack
+            </li>
+            <li><strong>[Added]</strong> User rate limitation for number of request per 100 seconds and others to
+                Google API
+                are handled with exponential backoff function now
+            </li>
+            <li><strong>[Added]</strong> Error of background jobs are shown, and colored red</li>
+            <li><strong>[Added]</strong> JP non-unicode links are converted to unicode now</li>
+            <li><strong>[Added]</strong> New way to check, if you have permission to check URL</li>
+            <li><strong>[Added]</strong> General URL validation while adding URL</li>
+            <li><strong>[Added]</strong> Integrated Sentry to catch exceptions</li>
+            <li><strong>[Fixed]</strong> Publication date of some link were set wrong sometimes</li>
+        </ul>
+
+        <h3>21.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Background jobs for long backend tasks</li>
+            <li><strong>[Added]</strong> Dynamic stats updating progress seen from each tab</li>
+            <li><strong>[Added]</strong> Force revoke button to settings</li>
+            <li><strong>[Added]</strong> More logic for missing refresh token</li>
+        </ul>
+
+        <h3>15.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Changed]</strong> Removed add and delete url forms</li>
+            <li><strong>[Added]</strong> Button to delete each link separately</li>
+            <li><strong>[Added]</strong> Add url button, which call the pop-up form</li>
+            <li><strong>[Added]</strong> Link in the table to add or change periods</li>
+        </ul>
+
+        <h3>14.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Reset your password by email (from login screen)</li>
+            <li><strong>[Added]</strong> Mail system</li>
+            <li><strong>[Added]</strong> Special logic and templates to reset password for "Sign in with Google" users
+            </li>
+            <li><strong>[Added]</strong> Responsive emails (inc. HTML and plain text versions)</li>
+        </ul>
+
+        <h3>13.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Changed]</strong> New account menu divided by categories</li>
+            <li><strong>[Changed]</strong> First column in the dashboard table is limited</li>
+            <li><strong>[Changed]</strong> Table is now responsible and can be scrolled horizontally</li>
+        </ul>
+
+        <h3>11.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Changed]</strong> Website messages are colored correctly red for errors, green for success,
+                blue for info
+            </li>
+            <li><strong>[Added]</strong> Delete all URLs button and confirmation in the settings</li>
+            <li><strong>[Changed]</strong> More validation to periods, entered by user</li>
+            <li><strong>[Fixed]</strong> Collisions between "Sign in with Google", if an email is already registred
+            </li>
+        </ul>
+
+        <h3>09.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Sign in with Google</li>
+            <li><strong>[Fixed]</strong> GA Authorization, updated OAuthlib and related packages</li>
+            <li><strong>[Added]</strong> More compatibility with IE</li>
+            <li><strong>[Changed]</strong> Simplified login and registration forms for IE compatibility</li>
+        </ul>
+
+        <h3>08.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Changed]</strong> New design for sign in and register forms</li>
+            <li><strong>[Added]</strong> Mobile responsiveness</li>
+            <li><strong>[Added]</strong> Switched to HTTP/2</li>
+        </ul>
+
+        <h3>03.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Retrieve data about Google Analytics accounts, properties and views</li>
+            <li><strong>[Added]</strong> Save GA meta data inc. time zones to database</li>
+            <li><strong>[Changed]</strong> Time shifting base on user time zone and GA time zone</li>
+            <li><strong>[Added]</strong> Retrieve GA stats only from authorized accounts</li>
+            <li><strong>[Added]</strong> Button to revoke access in account settings</li>
+            <li><strong>[Added]</strong> Display user time zone in account settings</li>
+
+        </ul>
+
+        <h3>02.01.2019</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Authentication to access Google Analytics data made by user</li>
+            <li><strong>[Added]</strong> Save access and refresh token to database</li>
+            <li><strong>[Added]</strong> Link to start authentication placed in dashboard</li>
+        </ul>
+
+        <h3>28.12.2018</h3>
+        <ul class="no-style">
+            <li><strong>[Added]</strong> Sorting links on dashboard by the date, they were added (Account)</li>
+            <li><strong>[Added]</strong> Ability to change the tracking periods (Account)</li>
+            <li><strong>[Changed]</strong> Stats are retrieved only after pressing "Update All"</li>
+            <li><strong>[Fixed]</strong> Positive change in bounce rate is marked in red</li>
+        </ul>
+    </div>
+{% endblock %}
