@@ -67,7 +67,7 @@
             {% for url in urls %}
 
                 <tr class="d-flex">
-                    <th scope="row" class="first-column table-warning col-5">{{ url.url }} <a href="{{ url.url }}"
+                    <th scope="row" class="first-column table-warning col-5">{{ url.url }}/ <a href="{{ url.url }}/"
                                                                                               target="_blank"><i
                             class="fas fa-external-link-alt"></i></a></th>
                     <td class="col-2 table-warning">{{ url.date.strftime('%d.%m.%Y') }}</td>
@@ -130,14 +130,14 @@
                     <th class="first-column col-5 table-secondary"></th>
                     <th scope="col" class="col-2 table-secondary"></th>
                     {% for period in periods_list %}
-                        <td class="col-1">{{ "{:.0%}".format(stats[url.id][period]['bounce_rate']|float) }}</td>
+                        <td class="col-1">{{ "{:.2%}".format(stats[url.id][period]['bounce_rate']|float) }}</td>
                     {% endfor %}
                 </tr>
                 <tr class="d-flex">
                     <td class="first-column col-5 table-secondary"></td>
                     <th class="col-2 table-secondary" style="text-align: right;">Bounce rate</th>
                     {% for period in periods_list %}
-                        <td class="col-1">{{ "{:.0%}".format(stats[url.id]['-' + period]['bounce_rate']|float) }}</td>
+                        <td class="col-1">{{ "{:.2%}".format(stats[url.id]['-' + period]['bounce_rate']|float) }}</td>
                     {% endfor %}
                 </tr>
                 <tr class="d-flex">

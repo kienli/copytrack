@@ -47,9 +47,10 @@ def update_landing(user_id, view_id, start_date, finish_date, url, ga_stats_dict
     :param url:
     :return:
     """
-    metrics = [{'expression': 'ga:sessions'}, {'expression': 'ga:bounces'}, {'expression': 'ga:transactions'}]
-    dimensions = [{'name': 'ga:date'}, {'name': 'ga:landingPagePath'}]
-    custom_filter = 'ga:landingPagePath'
+    metrics = [{'name': 'sessions'}, {'name': 'engagedSessions'}, {'name': 'transactions'}]
+    dimensions = [{'name': 'date'}, {'name': 'landingPage'}]
+    custom_filter = 'landingPage'
+    filter_type = 'exact'
 
     google_response = request_google_core_api(user_id=user_id,
                                               view_id=view_id,
@@ -59,19 +60,17 @@ def update_landing(user_id, view_id, start_date, finish_date, url, ga_stats_dict
                                               dimensions=dimensions,
                                               url_item=url,
                                               custom_filter=custom_filter,
+                                              filter_type=filter_type,
                                               access_token=access_token)
-
-    #  uri = take_uri(url)
-
     try:
         for row in iter(google_response):  # Iterate over yielded chunk of data
-            current_date_datetime = datetime.strptime(row['dimensions'][0], '%Y%m%d')
+            current_date_datetime = datetime.strptime(row['dimensionValues'][0]['value'], '%Y%m%d')
             current_date = to_date(current_date_datetime)
-
             # if row.get('dimensions', [])[1] == uri:
-            current_sessions = int(row.get('metrics', [])[0].get('values', [])[0])
-            current_bounces = int(row.get('metrics', [])[0].get('values', [])[1])
-            current_trans = int(row.get('metrics', [])[0].get('values', [])[2])
+            current_sessions = int(row.get('metricValues')[0]['value'])
+            current_bounces = int(row.get('metricValues')[1]['value'])
+            current_trans = int(row.get('metricValues')[2]['value'])
+
             ga_stats_dict.setdefault(url, {})
             ga_stats_dict[url].setdefault('metrics', {})
             ga_stats_dict[url]['metrics'].setdefault(current_date, {})
@@ -97,9 +96,10 @@ def update_pageviews(user_id, view_id, start_date, finish_date, url, ga_stats_di
     :param ga_stats_dict:
     :return:
     """
-    metrics = [{'expression': 'ga:pageviews'}]
-    dimensions = [{'name': 'ga:date'}, {'name': 'ga:pagePath'}]
-    custom_filter = 'ga:pagePath'
+    metrics = [{'name': 'screenPageViews'}]
+    dimensions = [{'name': 'date'}, {'name': 'landingPage'}]
+    custom_filter = 'landingPage'
+    filter_type = 'contains'
 
     google_response = request_google_core_api(user_id=user_id,
                                               view_id=view_id,
@@ -109,21 +109,20 @@ def update_pageviews(user_id, view_id, start_date, finish_date, url, ga_stats_di
                                               dimensions=dimensions,
                                               url_item=url,
                                               custom_filter=custom_filter,
+                                              filter_type=filter_type,
                                               access_token=access_token)
-
     try:
         for row in iter(google_response):
-            current_date_datetime = datetime.strptime(row.get('dimensions', [])[0], '%Y%m%d')
+            current_date_datetime = datetime.strptime(row.get('dimensionValues')[0]['value'], '%Y%m%d')
             current_date = to_date(current_date_datetime)
 
-            pageviews = int(row.get('metrics', [])[0].get('values', [])[0])
+            pageviews = int(row.get('metricValues')[0]['value'])
             ga_stats_dict.setdefault(url, {})
             ga_stats_dict[url].setdefault('metrics', {})
             ga_stats_dict[url]['metrics'].setdefault(current_date, {})
             ga_stats_dict[url]['metrics'][current_date]['pageviews'] = pageviews
     except KeyError:
         raise Exception(google_response)
-
     return ga_stats_dict
 
 
@@ -148,7 +147,7 @@ def get_error_reason(resp):
     return reason, error_details
 
 
-def request_google_core_api(user_id, view_id, start_date, finish_date, metrics, dimensions, custom_filter, url_item,
+def request_google_core_api(user_id, view_id, start_date, finish_date, metrics, dimensions, custom_filter, filter_type, url_item,
                             access_token):
     """
     Sends requests with metrics and dates to Google Core API,
@@ -164,35 +163,47 @@ def request_google_core_api(user_id, view_id, start_date, finish_date, metrics, 
     :param dimensions:
     :return:
     """
-
-    url = 'https://analyticsreporting.googleapis.com/v4/reports:batchGet'
+    url = f"https://analyticsdata.googleapis.com/v1beta/properties/{view_id}:batchRunReports"
     uri = take_uri(url_item)
 
-    page_token = '0'
+    #page_token = '0'
 
-    while page_token is not None:
+    #while page_token is not None:
 
-        body = {
-            "reportRequests": [
-                {
-                    'viewId': view_id,
-                    'dateRanges': [{'startDate': start_date, 'endDate': finish_date}],
-                    'metrics': metrics,
-                    'dimensions': dimensions,
-                    'pageSize': 5000,
-                    'pageToken': page_token,
-                    'filtersExpression': custom_filter + '==' + uri
+    body = {
+        "requests": [
+            {
+                "dateRanges": [
+                    {
+                        "startDate": start_date,
+                        "endDate": finish_date
+                        #"startDate": "2023-08-20",
+                        #"endDate": "2023-08-27"
+                    }
+                ],
+                "metrics": metrics,
+                "dimensions": dimensions,
+                "limit": 5000,
+                #"return_property_quota": "true",
+                "dimensionFilter": {
+                    "filter": {
+                        "fieldName": custom_filter,
+                        "stringFilter": {
+                            #"matchType": "EXACT",
+                            "matchType": filter_type,
+                            "value": uri
+                        }
+                    }
                 }
-            ]
-        }
+            }
+        ]
+    }
 
-        for n in range(0, 5):
+    for n in range(0, 5):
 
             try:
-
                 params = {"access_token": access_token, "quotaUser": str(user_id)}
                 r = requests.post(url, json=body, params=params)
-
                 google_response = r.json()
 
                 if google_response.get('error'):
@@ -213,15 +224,14 @@ def request_google_core_api(user_id, view_id, start_date, finish_date, metrics, 
                 else:
 
                     if len(google_response.get('reports', [])) >= 1:
+                        #page_token = google_response.get('reports', [])[0].get('nextPageToken')
+                        for report in google_response.get('reports', []):
+                            for row in report.get('rows', []):
+                                yield row
+                        break
 
-                        page_token = google_response.get('reports', [])[0].get('nextPageToken')
                     else:
                         raise Exception('Google request or response is bad')
-
-                    for report in google_response.get('reports', []):
-                        for row in report.get('data', {}).get('rows', []):
-                            yield row
-                    break
 
             except requests.exceptions.ConnectionError:
                 raise Exception(
