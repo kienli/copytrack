@@ -116,6 +116,9 @@ def dashboard(project_id):
                           user_id=current_user.id,
                           project_id=project_id)
 
+        if add_new_url.url[len(add_new_url.url)-1] == '/':
+            add_new_url.url = add_new_url.url[:-1]
+
         db.session.add(add_new_url)
         db.session.commit()
 
@@ -222,7 +225,8 @@ def dashboard(project_id):
             for period in periods_list:
                 try:
                     dashboard_dict[url.id][str(period)]['bounce_rate'] = str(
-                        int(dashboard_dict[url.id][str(period)]['bounces']) /
+                        (int(dashboard_dict[url.id][str(period)]['landing']) -
+                        int(dashboard_dict[url.id][str(period)]['bounces'])) /
                         int(dashboard_dict[url.id][str(period)]['landing']))
                 except ZeroDivisionError:
                     dashboard_dict[url.id][str(period)]['bounce_rate'] = str(0)
@@ -231,7 +235,8 @@ def dashboard(project_id):
 
                 try:
                     dashboard_dict[url.id]['-' + str(period)]['bounce_rate'] = str(
-                        int(dashboard_dict[url.id]['-' + str(period)]['bounces']) /
+                        (int(dashboard_dict[url.id]['-' + str(period)]['landing']) -
+                        int(dashboard_dict[url.id]['-' + str(period)]['bounces'])) /
                         int(dashboard_dict[url.id]['-' + str(period)]['landing']))
                 except ZeroDivisionError:
                     dashboard_dict[url.id]['-' + str(period)]['bounce_rate'] = str(0)
@@ -316,12 +321,9 @@ def update_single_url(url_id):
     url = Url.query.get(int(url_id))
 
     if ga_blueprint.session.authorized:
-
         try:
-            ga_blueprint.session.get('https://www.googleapis.com/analytics/v3/management/accountSummaries')
-
+            ga_blueprint.session.get('https://analyticsadmin.googleapis.com/v1beta/accountSummaries')
         except (InvalidClientIdError, InvalidGrantError):
-
             flash('Your one hour Google session without refresh token has expired. Please submit the request again',
                   'danger')
             to_del = OAuth.query.filter_by(user_id=current_user.id,
@@ -352,7 +354,7 @@ def update_all_urls():
             flash('Stats update is currently in progress', 'danger')
         else:
             try:
-                ga_blueprint.session.get('https://www.googleapis.com/analytics/v3/management/accountSummaries')
+                ga_blueprint.session.get('https://analyticsadmin.googleapis.com/v1beta/accountSummaries')
 
             except (InvalidClientIdError, InvalidGrantError):
 
@@ -365,7 +367,6 @@ def update_all_urls():
 
                 return redirect(url_for('ga-oauth.login'))
 
-            # flash(ga_blueprint.session.token)
             current_user.launch_task('update_urls', 'Updating stats...',
                                      user_id=current_user.id,
                                      access_token=ga_blueprint.session.token['access_token'],
